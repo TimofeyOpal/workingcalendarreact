@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <title>Document</title>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+    function GetMonth(now) {
+        const arrMonth = [{ month: "01", value: "Январь" }, { month: "02", value: "Февраль" }, { month: "03", value: "Март" },
+            { month: "04", value: "Апрель" }, { month: "05", value: "Май" }, { month: "06", value: "Июнь" }, { month: "07", value: "Июль" },
+            { month: "08", value: "Август" }, { month: "09", value: "Сентярь" }, { month: "10", value: "Октябрь" }, { month: "11", value: "Ноябрь" }, { month: "12", value: "Декабрь" }];
+        let monthString;
+        for (let i = 0; i < arrMonth.length; i++) {
+            if (arrMonth[i].month == now) {
+                monthString = arrMonth[i].value;
+                break;
+            }
+        }
+        return monthString;
+    }
+
+    function daysInMonth(month, year) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    function GetDayWeek(day, month, year) {
+        let monthString = String(month);
+        let nul = "";
+        if (typeof (monthString[1]) == "undefined") {
+            nul = "0"
+        }
+        let dateString = year + '-' + nul + monthString + '-' + day + 'T01:00:00'
+        const days = ["0", "1", "2", "3", "4", "5", "6"];
+        let d = new Date(dateString);
+        let n = d.getDay();
+        if (n == 0) n = 7;
+        return days[n - 1];
+    }
+    function getTrueDay() {
+        let date = new
+        Date().toLocaleDateString();
+        let result;
+        !date[0] == '0'? result = date[0]+date[1]: result = date[1];
+        return result ;
+    }
+
+    function getArrayMonthDay(month, year) {
+        let arr = []
+        let lastMonth;
+        let days = daysInMonth(month, year);
+        let firstDay = GetDayWeek("01", month, year);
+        for (let i = 1; i < days + 1; i++) {
+            arr.push(i);
+        }
+        if (firstDay != 0) {
+            let dayLast = 7 + Number(firstDay) - 7;
+            month - 1 == 0 ? lastMonth = daysInMonth("12", year - 1) : lastMonth = daysInMonth(month - 1, year);
+            let countNeedDay = lastMonth - dayLast;
+            let countD = lastMonth - countNeedDay
+            for (let i = lastMonth; i > countNeedDay; i--) {
+                arr.unshift(i);
+            }
+        }
+
+        let lastDayMonth = arr[arr.length - 1];
+        let dayWeekNext = Number(GetDayWeek(lastDayMonth, month, year))
+
+        if (dayWeekNext != 6) {
+            let a = 7 - dayWeekNext;
+            for (let i = 1; i < a; i++) {
+                arr.push(i)
+            }
+        }
+        return arr;
+    }
+
+
+
+    class Calendar extends React.Component {
+        constructor() {
+            super();
+            let arr = getArrayMonthDay(new Date().toLocaleString()[3] + new Date().toLocaleString()[4], new Date().getFullYear())
+            this.state = {
+                month: new Date().toLocaleString()[3] + new Date().toLocaleString()[4],
+                year: new Date().getFullYear(),
+                arr: arr
+
+            }
+        }
+
+        handlerPlus() {
+            let monthNumber = this.state.month;
+            monthNumber++;
+            if (monthNumber == 13) {
+                monthNumber = 1;
+                let arr = getArrayMonthDay(monthNumber, this.state.year + 1);
+                this.setState({
+                    month: monthNumber,
+                    year: this.state.year + 1,
+                    arr: arr
+                })
+            }
+            else {
+                let arr = getArrayMonthDay(Number(this.state.month) + 1, this.state.year);
+                this.setState({
+                    month: monthNumber,
+                    arr: arr
+                })
+
+            }
+        }
+
+        handlerMinus() {
+            let monthNumber = this.state.month;
+            monthNumber--;
+            if (monthNumber == 0) {
+                monthNumber = 12;
+                let arr = getArrayMonthDay(monthNumber, this.state.year - 1)
+                this.setState({
+                    month: monthNumber,
+                    year: this.state.year - 1,
+                    arr: arr
+                })
+            }
+            else {
+
+                let arr = getArrayMonthDay(this.state.month - 1, this.state.year)
+
+                this.setState({
+                    month: monthNumber,
+                    arr: arr
+
+                })
+            }
+        }
+
+
+
+
+        render() {
+            return (
+                <div className="calendar">
+                    <div className="calendar__title">
+                        <img className="button-callendar" src="http://linda/sites/sandbox/PictureLibraryReact/Vectddddor.svg" onClick={this.handlerMinus.bind(this)} />
+                        <p className="calendar__month">{GetMonth(this.state.month)}</p>
+                        <img className="button-callendar" src="http://linda/sites/sandbox/PictureLibraryReact/Right.svg" onClick={this.handlerPlus.bind(this)} />
+                    </div>
+                    <div className="calendar__day-title">
+                        <p>ПН</p>
+                        <p>ВТ</p>
+                        <p>СР</p>
+                        <p>ЧТ</p>
+                        <p>ПТ</p>
+                        <p>СБ</p>
+                        <p>ВС</p>
+                    </div>
+                    <div>
+                        <ul className="calendar__list">
+                            {this.state.arr.map((item, index) => {
+                                    if (index <= 6 && item > 20) { return (<li className="notValid" key={index}>{item}</li>) }
+                                    else if (index > 20 && item < 10) {
+                                        return (<li className="notValid" key={index}>{item}</li>)
+                                    }
+                                    else{
+                                        if( this.state.month == new Date().toLocaleString()[3] + new Date().toLocaleString()[4] && this.state.year ==new Date().getFullYear()&& item == getTrueDay()){
+                                            return (<li className="today" key={index}>{item}</li>)
+                                        }
+                                        else{
+                                            return (<li key={index}>{item}</li>)
+                                        }
+
+                                    }
+                                }
+
+                            )}
+
+
+
+
+
+
+
+
+                        </ul>
+                    </div>
+                </div>
+
+            )
+        }
+
+    }
+
+    ReactDOM.render(<Calendar />, document.getElementById('root'))
+</script>
